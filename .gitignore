@@ -1,0 +1,43 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+.venv/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# NLTK data 
+nltk_data/
+
+# VS Code settings 
+.vscode/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# Data output  
+*.csv
+*.json
+*.tsv
+*.pkl
+*.npy
+*.joblib
+*.index
+*func_code.py
+
+# Cache
+__pypackages__/
+*.egg-info/
+.eggs/
+.cache/

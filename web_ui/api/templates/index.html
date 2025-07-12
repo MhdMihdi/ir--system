@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IR Search</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #f7f9fc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .search-container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      padding: 25px 35px;
+      width: 100%;
+      margin: 50px;
+      box-sizing: border-box;
+      max-width: 800px;
+    }
+
+    .browser-header {
+      background-color: #f2f2f2;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      border-radius: 10px 10px 0 0;
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 20px;
+    }
+
+    .browser-buttons {
+      display: flex;
+      gap: 6px;
+    }
+
+    .browser-buttons .circle {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .circle.red { background-color: #ff5f56; }
+    .circle.yellow { background-color: #ffbd2e; }
+    .circle.green { background-color: #27c93f; }
+
+    .form-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .select-dataset, .select-model {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    .search-box {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-input {
+      width: 70%;
+      padding: 10px 40px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      outline: none;
+      transition: border 0.2s ease;
+    }
+
+    .search-input:focus {
+      border-color: #007bff;
+    }
+
+    .search-box::before {
+      content: "🔍";
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      color: #888;
+    }
+
+    .search-button {
+      padding: 12px;
+      font-size: 16px;
+      background-color: #ff7f3f;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 30%;
+      max-width: 150px;
+    }
+
+    .search-button:hover {
+      background-color: #e66d2f;
+    }
+
+    #results-section {
+      margin-top: 35px;
+      width: 100%;
+      max-width: 800px;
+      background: #fff;
+      padding: 10px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .results-list {
+      padding-left: 20px;
+    }
+
+    .result-item {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .result-item strong {
+      color: #333;
+    }
+
+    .result-item p {
+      margin: 4px 0;
+      color: #444;
+    }
+
+    #loading {
+      display: none;
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    #loading p {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .loading-bar-container {
+      width: 80%;
+      margin: auto;
+    }
+
+    .loading-bar-track {
+      height: 6px;
+      background: #eee;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .loading-bar {
+      height: 6px;
+      background: #ff7f3f;
+      width: 0%;
+      animation: loading 1.2s infinite;
+    }
+
+    @keyframes loading {
+      0% { width: 0%; }
+      50% { width: 80%; }
+      100% { width: 0%; }
+    }
+
+    .query-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .query-info p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+
+    .correction {
+      color: #28a745;
+    }
+
+    .topics {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .topic-tag {
+      background: #e9ecef;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #495057;
+    }
+
+    .suggestions-container {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .suggestions-section {
+      margin-bottom: 15px;
+    }
+
+    .suggestions-section h4 {
+      margin: 0 0 10px 0;
+      color: #495057;
+      font-size: 14px;
+    }
+
+    .suggestion-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .suggestion-chip {
+      background: #e9ecef;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      color: #495057;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .suggestion-chip:hover {
+      background: #dee2e6;
+      transform: translateY(-1px);
+    }
+
+    /* تصميم لقسم الاقتراحات الحيّة */
+    #live-suggestions {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    #live-suggestions .suggestions-section h4 {
+      margin-bottom: 6px;
+      font-size: 14px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="search-container">
+    <div class="browser-header">
+      <div class="browser-buttons">
+        <div class="circle red"></div>
+        <div class="circle yellow"></div>
+        <div class="circle green"></div>
+      </div>
+    </div>
+
+    <form class="form-wrapper" action="/search" method="POST">
+      <select name="dataset" class="select-dataset" required>
+        <option value="" disabled selected>Select a dataset</option>
+        <option value="msmarco_train">MS MARCO Passage</option>
+        <option value="beir_quora_test">Beir Quora</option>
+      </select>
+
+      <select name="mode" class="select-model" required>
+        <option value="" disabled selected>Select a model</option>
+        <option value="tfidf">TF-IDF</option>
+        <option value="bert">BERT</option>
+        <option value="hybrid">Hybrid</option>
+      </select>
+
+      <label> 
+        <input type="checkbox" name="use_vectorstore" {% if request.args.get('use_vectorstore') == 'on' %}checked{% endif %}>
+        Use Vector Store
+      </label>
+      
+      <label>
+        <input type="checkbox" name="use_refinement" {% if request.args.get('use_refinement') == 'on' %}checked{% endif %}>
+        Use Query Refinement
+      </label>
+       
+      <div class="search-box">
+        <input type="text" name="query" class="search-input" placeholder="Search..." autocomplete="off" required />
+      </div>
+
+      <!-- قسم عرض الاقتراحات الحيّة -->
+      <div id="live-suggestions"></div>
+
+      <button type="submit" class="search-button">Search</button>
+
+      {% if dataset and query %}
+        <div class="query-info">
+          <p><strong>Dataset :</strong> {{ dataset }}</p>
+          <p><strong>Model :</strong> {{ mode|capitalize }}</p>
+          <p><strong>Query :</strong> {{ query }}</p>
+        </div>
+      {% endif %}
+
+      {% if results %}
+        <div id="results-section">
+          {% if results[0].query_info %}
+            <div class="query-info">
+              <p><strong>Original Query:</strong> {{ results[0].query_info.original }}</p>
+              {% if results[0].query_info.original != results[0].query_info.corrected %}
+              <p><strong>Corrected Query:</strong> <span class="correction">{{ results[0].query_info.corrected }}</span></p>
+              {% endif %}
+            </div>
+          {% endif %}
+
+          <div class="results-list">
+            {% for result in results %}
+              <div class="result-item">
+                <strong>Document ID:</strong> {{ result.doc_id }}<br>
+                <strong>Score:</strong> {{ "%.4f"|format(result.score) }}<br>
+                <p>{{ result.text }}</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+    </form>
+  </div>
+
+  <div id="loading">
+    <div class="loading-bar-container">
+      <div class="loading-bar-track">
+        <div class="loading-bar"></div>
+      </div>
+      <p>loading</p>
+    </div>
+  </div>
+
+  <script>
+    // إخفاء الفورم وعرض التحميل عند الإرسال
+    document.querySelector("form").addEventListener("submit", function () {
+      document.querySelector("form").style.display = "none";
+      document.getElementById("loading").style.display = "block";
+    });
+
+    // تحديث قيمة البحث عند الضغط على اقتراح لكن بدون إرسال الفورم
+    function updateQuery(query) {
+      document.querySelector('input[name="query"]').value = query;
+      // لا نرسل الفورم هنا
+    }
+
+    // مكان عرض الاقتراحات الحية
+    const liveSuggestions = document.getElementById('live-suggestions');
+
+    // إنشاء زر اقتراح صغير
+    function createSuggestionChip(text) {
+      const span = document.createElement('span');
+      span.className = 'suggestion-chip';
+      span.textContent = text;
+      span.onclick = () => {
+        updateQuery(text);
+      };
+      return span;
+    }
+
+    // مسح الاقتراحات الحية
+    function clearSuggestions() {
+      liveSuggestions.innerHTML = '';
+    }
+
+    // عرض الاقتراحات الحية من البيانات
+    function renderSuggestions(data) {
+      clearSuggestions();
+
+      if (!data) return;
+
+      // related_terms
+      if (data.related_terms && data.related_terms.length > 0) {
+        const section = document.createElement('div');
+        section.className = 'suggestions-section';
+        const title = document.createElement('h4');
+        title.textContent = '🔄 مصطلحات مرتبطة:';
+        section.appendChild(title);
+
+        const container = document.createElement('div');
+        container.className = 'suggestion-chips';
+
+        data.related_terms.forEach(term => {
+          container.appendChild(createSuggestionChip(term));
+        });
+
+        section.appendChild(container);
+        liveSuggestions.appendChild(section);
+      }
+
+      // similar_queries
+      if (data.similar_queries && data.similar_queries.length > 0) {
+        const section = document.createElement('div');
+        section.className = 'suggestions-section';
+        const title = document.createElement('h4');
+        title.textContent = '🔍 استعلامات مشابهة:';
+        section.appendChild(title);
+
+        const container = document.createElement('div');
+        container.className = 'suggestion-chips';
+
+        data.similar_queries.forEach(query => {
+          container.appendChild(createSuggestionChip(query));
+        });
+
+        section.appendChild(container);
+        liveSuggestions.appendChild(section);
+      }
+
+      // popular_queries
+      if (data.popular_queries && data.popular_queries.length > 0) {
+        const section = document.createElement('div');
+        section.className = 'suggestions-section';
+        const title = document.createElement('h4');
+        title.textContent = '🔥 الأكثر بحثاً:';
+        section.appendChild(title);
+
+        const container = document.createElement('div');
+        container.className = 'suggestion-chips';
+
+        data.popular_queries.forEach(query => {
+          container.appendChild(createSuggestionChip(query));
+        });
+
+        section.appendChild(container);
+        liveSuggestions.appendChild(section);
+      }
+    }
+
+    let typingTimer;
+    const doneTypingInterval = 500; // نص ثانية
+
+    document.querySelector('input[name="query"]').addEventListener('keyup', function() {
+      clearTimeout(typingTimer);
+      if (this.value.trim()) {
+        typingTimer = setTimeout(() => getSuggestions(this.value.trim()), doneTypingInterval);
+      } else {
+        clearSuggestions();
+      }
+    });
+
+    function getSuggestions(query) {
+      const refinementEnabled = document.querySelector('input[name="use_refinement"]').checked;
+      if (!refinementEnabled) {
+        clearSuggestions();
+        return;
+      }
+
+      fetch(`/suggest?query=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+          renderSuggestions(data);
+        })
+        .catch(err => {
+          console.error('Error fetching suggestions:', err);
+          clearSuggestions();
+        });
+    }
+
+  </script>
+</body>
+</html>
