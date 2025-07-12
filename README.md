@@ -4,7 +4,7 @@
 
 ---
 
-## sourec code in branch called code
+
 
 
 
@@ -64,8 +64,6 @@ python evaluation/evaluate_quora.py
   - تتبع الاستعلامات الأكثر شيوعًا
   - استخراج مصطلحات مرتبطة
 - Vector Store باستخدام FAISS لتسريع BERT
-- Hybrid Scoring
-- دعم أكثر من مجموعة بيانات (MSMARCO / Quora)
 
 ---
 
